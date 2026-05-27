@@ -1,0 +1,1 @@
+DOMAIN = "typhur_ble"
