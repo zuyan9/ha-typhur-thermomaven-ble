@@ -156,7 +156,8 @@ class TyphurBleCoordinator:
             cmd_data = payload.get("cmdData")
             if isinstance(cmd_data, dict):
                 self.data["globalStatus"] = cmd_data.get("globalStatus")
-                self.data["baseBatteryValue"] = cmd_data.get("batteryValue")
+                base_bat = cmd_data.get("batteryValue")
+                self.data["baseBatteryValue"] = min(100, max(0, base_bat)) if base_bat is not None else None
                 self.data["wifiRssi"] = cmd_data.get("wifiRssi")
                 self.data["volume"] = cmd_data.get("volume")
                 
@@ -170,7 +171,8 @@ class TyphurBleCoordinator:
                     cur_amb = probe.get("curAmbientTemperature")
                     self.data["curAmbientTemperature"] = (cur_amb / 10.0) if cur_amb not in (None, 0, 65535, -1) else None
                     
-                    self.data["batteryValue"] = probe.get("batteryValue")
+                    probe_bat = probe.get("batteryValue")
+                    self.data["batteryValue"] = min(100, max(0, probe_bat)) if probe_bat is not None else None
                     self.data["cookingState"] = probe.get("cookingState")
                     self.data["cookingMode"] = probe.get("cookingMode")
                     self.data["totalCookSec"] = probe.get("totalCookSec")
