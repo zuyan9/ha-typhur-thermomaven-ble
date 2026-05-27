@@ -199,6 +199,7 @@ class TyphurTemperatureSensor(SensorEntity):
         self._name = name
         self._key = key
         self.data_key = data_key
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.address}_{key}"
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -208,7 +209,7 @@ class TyphurTemperatureSensor(SensorEntity):
 
     @property
     def name(self):
-        return f"{self.coordinator.name} {self._name}"
+        return self._name
 
     @property
     def native_value(self):
@@ -233,6 +234,7 @@ class TyphurBatterySensor(SensorEntity):
         self._key = key
         self.data_key = data_key
         self.is_base = is_base
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.address}_{key}"
         self._attr_device_class = SensorDeviceClass.BATTERY
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -240,7 +242,7 @@ class TyphurBatterySensor(SensorEntity):
 
     @property
     def name(self):
-        return f"{self.coordinator.name} {self._name}"
+        return None # Let HA use the device class name 'Battery'
 
     @property
     def native_value(self):
@@ -268,6 +270,7 @@ class TyphurTimeSensor(SensorEntity):
         self._name = name
         self._key = key
         self.data_key = data_key
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.address}_{key}"
         self._attr_device_class = SensorDeviceClass.DURATION
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -275,7 +278,7 @@ class TyphurTimeSensor(SensorEntity):
 
     @property
     def name(self):
-        return f"{self.coordinator.name} {self._name}"
+        return self._name
 
     @property
     def native_value(self):
@@ -300,11 +303,12 @@ class TyphurTextSensor(SensorEntity):
         self._key = key
         self.data_key = data_key
         self.is_base = is_base
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.address}_{key}"
 
     @property
     def name(self):
-        return f"{self.coordinator.name} {self._name}"
+        return self._name
 
     @property
     def native_value(self):
@@ -333,6 +337,7 @@ class TyphurSignalSensor(SensorEntity):
         self._key = key
         self.data_key = data_key
         self.is_base = is_base
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{coordinator.address}_{key}"
         self._attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -340,7 +345,7 @@ class TyphurSignalSensor(SensorEntity):
 
     @property
     def name(self):
-        return f"{self.coordinator.name} {self._name}"
+        return self._name
 
     @property
     def native_value(self):
