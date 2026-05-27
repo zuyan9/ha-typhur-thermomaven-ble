@@ -47,6 +47,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         TyphurTextSensor(coordinator, "Cooking State", "cooking_state", "cookingState"),
         TyphurTextSensor(coordinator, "Cooking Mode", "cooking_mode", "cookingMode"),
         TyphurTextSensor(coordinator, "Base Station Status", "base_status", "globalStatus", is_base=True),
+        TyphurTextSensor(coordinator, "Base Station Charging", "base_charging", "batteryStatus", is_base=True),
+        TyphurTextSensor(coordinator, "Probe Inserted", "probe_inserted", "engagedStatus"),
         TyphurTextSensor(coordinator, "Volume", "volume", "volume", is_base=True),
         TyphurSignalSensor(coordinator, "WiFi RSSI", "wifi_rssi", "wifiRssi", is_base=True)
     ]
@@ -178,6 +180,7 @@ class TyphurBleCoordinator:
                     self.data["totalCookSec"] = probe.get("totalCookSec")
                     self.data["curCookSec"] = probe.get("curCookSec")
                     self.data["curRemainedSec"] = probe.get("curRemainedSec")
+                    self.data["deviceSn"] = probe.get("deviceSn")
                     
                     # Target Temp
                     set_params = probe.get("setParams", [])
@@ -185,13 +188,19 @@ class TyphurBleCoordinator:
                         set_temp = set_params[0].get("setTemperature")
                         self.data["targetTemperature"] = (set_temp / 10.0) if set_temp not in (None, 0, 65535, -1) else None
                     
+                    self.data["batteryStatus"] = cmd_data.get("batteryStatus")
+                    self.data["engagedStatus"] = probe.get("engagedStatus")
+                    
                     area = probe.get("areaTemperature", [])
                     for i, val in enumerate(area):
                         self.data[f"areaTemperature_{i}"] = (val / 10.0) if val not in (None, 0) else None
                         
-                    for listener in self.listeners:
-                        listener()
-                    return
+                self.data["appVersion"] = payload.get("appVersion")
+                self.data["controlBoardVersion"] = payload.get("controlBoardVersion")
+                        
+                for listener in self.listeners:
+                    listener()
+                return
         except Exception as e:
             _LOGGER.error(f"Error parsing data: {e}")
 
@@ -219,11 +228,16 @@ class TyphurTemperatureSensor(SensorEntity):
 
     @property
     def device_info(self):
+        app_ver = self.coordinator.data.get("appVersion")
+        sw_version = str(app_ver) if app_ver else None
+        
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.coordinator.address}_probe")},
             name=f"{self.coordinator.name} Probe",
             manufacturer="Typhur / ThermoMaven",
             via_device=(DOMAIN, self.coordinator.address),
+            serial_number=self.coordinator.data.get("deviceSn"),
+            sw_version=sw_version
         )
 
     async def async_added_to_hass(self):
@@ -252,15 +266,21 @@ class TyphurBatterySensor(SensorEntity):
 
     @property
     def device_info(self):
+        app_ver = self.coordinator.data.get("appVersion")
+        sw_version = str(app_ver) if app_ver else None
+
         if self.is_base:
             return DeviceInfo(
                 identifiers={(DOMAIN, self.coordinator.address)},
+                sw_version=sw_version
             )
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.coordinator.address}_probe")},
             name=f"{self.coordinator.name} Probe",
             manufacturer="Typhur / ThermoMaven",
             via_device=(DOMAIN, self.coordinator.address),
+            serial_number=self.coordinator.data.get("deviceSn"),
+            sw_version=sw_version
         )
 
     async def async_added_to_hass(self):
@@ -288,11 +308,16 @@ class TyphurTimeSensor(SensorEntity):
 
     @property
     def device_info(self):
+        app_ver = self.coordinator.data.get("appVersion")
+        sw_version = str(app_ver) if app_ver else None
+        
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.coordinator.address}_probe")},
             name=f"{self.coordinator.name} Probe",
             manufacturer="Typhur / ThermoMaven",
             via_device=(DOMAIN, self.coordinator.address),
+            serial_number=self.coordinator.data.get("deviceSn"),
+            sw_version=sw_version
         )
 
     async def async_added_to_hass(self):
@@ -318,15 +343,21 @@ class TyphurTextSensor(SensorEntity):
 
     @property
     def device_info(self):
+        app_ver = self.coordinator.data.get("appVersion")
+        sw_version = str(app_ver) if app_ver else None
+
         if self.is_base:
             return DeviceInfo(
                 identifiers={(DOMAIN, self.coordinator.address)},
+                sw_version=sw_version
             )
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.coordinator.address}_probe")},
             name=f"{self.coordinator.name} Probe",
             manufacturer="Typhur / ThermoMaven",
             via_device=(DOMAIN, self.coordinator.address),
+            serial_number=self.coordinator.data.get("deviceSn"),
+            sw_version=sw_version
         )
 
     async def async_added_to_hass(self):
@@ -355,15 +386,21 @@ class TyphurSignalSensor(SensorEntity):
 
     @property
     def device_info(self):
+        app_ver = self.coordinator.data.get("appVersion")
+        sw_version = str(app_ver) if app_ver else None
+
         if self.is_base:
             return DeviceInfo(
                 identifiers={(DOMAIN, self.coordinator.address)},
+                sw_version=sw_version
             )
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self.coordinator.address}_probe")},
             name=f"{self.coordinator.name} Probe",
             manufacturer="Typhur / ThermoMaven",
             via_device=(DOMAIN, self.coordinator.address),
+            serial_number=self.coordinator.data.get("deviceSn"),
+            sw_version=sw_version
         )
 
     async def async_added_to_hass(self):
